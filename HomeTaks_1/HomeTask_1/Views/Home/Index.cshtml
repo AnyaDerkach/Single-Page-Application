@@ -1,0 +1,158 @@
+﻿
+@model PagedList.IPagedList<HomeTask_1.Models.User>
+@using PagedList.Mvc;
+
+@{ 
+    ViewBag.Title = "Index";
+
+}
+
+
+
+@section Scripts {
+    <script>
+        var model = {
+            users: ko.observableArray(),
+            editor: {
+                username: ko.observable(""),
+             }
+        };
+
+        function sendAjaxRequest(httpMethod, callback, url, reqData) {
+            $.ajax("/api/web" + (url ? "/" + url : ""), {
+                type: httpMethod,
+                success: callback,
+                data: reqData
+            });
+        }
+
+
+        function getAllItems() {
+            sendAjaxRequest("GET", function (data) {
+
+                for (var i = 0; i < data.length; i++) {
+                    model.users.push(data[i]);
+                }
+            });
+        }
+
+        function removeItem(item) {
+      
+            sendAjaxRequest("DELETE", function () {
+
+                for (var i = 0; i < model.users().length; i++) {
+                    if (model.users()[i].Id == item.Id) {
+                        alert (item.Id);
+                        model.users.remove(model.users()[i]);
+                        break;
+                    }
+                }
+            }, item.Id);
+
+        }
+
+        function handleEditorClick() {
+            sendAjaxRequest("POST", function (newItem) {
+                model.users.push(newItem);
+            }, null, {
+                UserName: model.editor.username
+
+            });
+        }
+
+
+
+        $(document).ready(function () {
+            getAllItems();
+            ko.applyBindings(model);
+        });
+
+
+
+    </script>
+}
+
+@section Body {
+    <div id="summary">
+        <div class="site-header">
+            <div class="container">
+                <div class="main-header">
+                    <div class="row">
+                        <div class="col-md-4 col-sm-6 col-xs-10">
+                            <div class="logo">
+                                <a href="#">
+                                    <img src="/Content/images/logo.png" alt="travel html5 template" title="travel html5 template">
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-8 col-sm-6 col-xs-2">
+                            <div class="main-menu">
+                                <ul class="visible-lg visible-md">
+                                    <li class="active"><a href="index.html">Home</a></li>
+                                    <li onclick="document.getElementById('addUser').style.display='block'"><a>Create</a></li>
+                                </ul>
+                                <a href="#" class="toggle-menu visible-sm visible-xs">
+                                    <i class="fa fa-bars"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id='paging' style="text-align:center ">
+                @Html.PagedListPager(Model, page => Url.Action("Index", new { page }), PagedListRenderOptions.OnlyShowFivePagesAtATime)
+            </div>
+        </div>
+
+
+
+        <div class="flexslider">
+          
+            <img src="~/Content/images/templatemo_slide_1.jpg" />
+            <table class="flat-table">
+                <thead>
+
+                    <tr>
+                        <th scope="col" abbr="Starter">ID</th>
+                        <th scope="col" abbr="Medium">CLIENTS FULL NAME</th>
+                    </tr>
+                </thead>
+                <tbody  id="tableUsers">
+                    @foreach (var item in Model)
+                    {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Id)
+                        </td>
+                        <td>
+                            @item.UserName
+                        </td>
+                        <td>
+                            <button class="mainBtn" data-bind="click: removeItem">Delete!</button>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+           
+        </div>
+
+    </div>
+
+    <div id="addUser" style="position: absolute; right:100px; top:300px; display:none" class="col-md-5 col-sm-6">
+        <img src="/Content/images/close.png" style="position: absolute; right:180px; top:-40px;" onclick="document.getElementById('addUser').style.display='none'">
+        <h3 class="widget-title">CREATE NEW USER</h3>
+        <div class="contact-form">
+            <form name="contactform" id="IdInp" method="post" action="">
+                <p>
+                    <input name="Name" type="text" id="UserName" placeholder="Your Name" data-bind="value: model.editor.username" />
+                </p>
+                <p><input class="mainBtn" id="submit" value="Create" data-bind="click: handleEditorClick"></p>
+
+            </form>
+
+        </div>
+    </div>
+
+}
+
